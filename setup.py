@@ -16,8 +16,7 @@ class CustomCommands(setuptools.Command):
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
-    # Can use communicate(input='y\n'.encode()) if the command run requires
-    # some confirmation.
+    
     stdout_data, _ = p.communicate()
     print('Command output: %s' % stdout_data)
     if p.returncode != 0:
@@ -36,8 +35,9 @@ REQUIRED_PACKAGES=['apache-beam', 'apache-beam[gcp]', 'Pillow', 'numpy', 'opencv
 setuptools.setup(name='pipel', 
       version='1',
       setup_requires=REQUIRED_PACKAGES,
+      description='install required packages for the pipeline',
       install_requires=REQUIRED_PACKAGES,
       packages=setuptools.find_packages(),
       include_package_data=True
-      # cmdclass='Customcommands':
-      )
+      cmdclass={'build':build,
+                'Customcommands': CustomCommands})
