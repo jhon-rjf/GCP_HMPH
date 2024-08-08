@@ -9,8 +9,15 @@ CUSTOM_COMMANDS=[['apt-get', 'update'],
                  ['apt-get', '--asuume-yes', 'install', 'libgl1-mesa-glx']]
 
 class CustomCommands(setuptools.Command):
+  def initialize_options(self):
+    pass
+
+  def finalize_options(self):
+    pass
+  
   def RunCustomCommand(self, command_list):
     print('Running command: %s' % command_list)
+    
     p = subprocess.Popen(
         command_list,
         stdin=subprocess.PIPE,
@@ -32,10 +39,10 @@ REQUIRED_PACKAGES=['apache-beam', 'apache-beam[gcp]', 'Pillow', 'numpy', 'opencv
 setuptools.setup(
   name='pipel', 
   version='1',
-  setup_requires=REQUIRED_PACKAGES,
   description='install required packages for the pipeline',
+  setup_requires=REQUIRED_PACKAGES,
   install_requires=REQUIRED_PACKAGES,
   packages=setuptools.find_packages(),
   include_package_data=True,
   cmdclass={'build':build,
-            'Customcommands': CustomCommands})
+            'CustomCommands': CustomCommands})
