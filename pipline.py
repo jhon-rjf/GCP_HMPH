@@ -29,16 +29,16 @@ class saving_img_to_gcs(beam.DoFn):
     self.bucket_name=bucket_name
 
   def process(self,np_arr_img):
-    storage_client=storage.Client()  #process로 옮기면 피클링 안함?
+    storage_client=storage.Client()  #process로 옮기면 피클링 안함
     bucket=storage_client.bucket(self.bucket_name)
-    filename=f'image_{self.index}.png'
-    blob=bucket.blob(f'{filename}')
+    file_path=f'img/image_{self.index}.png'
+    blob=bucket.blob(f'{file_path}')
     self.index+=1
     _,buffer_img=cv2.imencode('.png',np_arr_img)
     blob.upload_from_string(buffer_img.tobytes(),content_type='image/png')
 
 topics='projects/andong-24-team-102/topics/test'           #토픽 경로 입력
-bucket_name='gs://mypipestorage'
+bucket_name='mypipestorage'
 
 pipeline_options = PipelineOptions(
   project='andong-24-team-102',     #프로젝트 id 입력
@@ -49,14 +49,12 @@ pipeline_options = PipelineOptions(
   max_num_workers=10,
   save_main_session=True,
   setup_file='./setup.py'
-  # requirements_file='./Requirements.txt'
   )
 
 def run():
   with beam.Pipeline(options=pipeline_options) as p:
     input = p | 'Read' >> beam.io.ReadFromPubSub(topic=topics)
     decode_img = input | 'Decode' >> beam.Map(decode_base64) 
-    #test
     decode_img| 'save' >> beam.ParDo(saving_img_to_gcs(bucket_name))
 
 # 파이프라인 실행
