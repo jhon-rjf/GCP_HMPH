@@ -27,17 +27,15 @@ class CustomCommands(setuptools.Command):
     for command in CUSTOM_COMMANDS:
       self.RunCustomCommand(command)
 
-
-
-
 REQUIRED_PACKAGES=['apache-beam', 'apache-beam[gcp]', 'Pillow', 'numpy', 'opencv-python', 'google-cloud-storage']
 
-setuptools.setup(name='pipel', 
-      version='1',
-      setup_requires=REQUIRED_PACKAGES,
-      description='install required packages for the pipeline',
-      install_requires=REQUIRED_PACKAGES,
-      packages=setuptools.find_packages(),
-      include_package_data=True
-      cmdclass={'build':build,
-                'Customcommands': CustomCommands})
+setuptools.setup(
+  name='pipel', 
+  version='1',
+  setup_requires=REQUIRED_PACKAGES,
+  description='install required packages for the pipeline',
+  install_requires=REQUIRED_PACKAGES,
+  packages=setuptools.find_packages(),
+  include_package_data=True,
+  cmdclass={'build':build,
+            'Customcommands': CustomCommands})
