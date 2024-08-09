@@ -4,7 +4,10 @@ from google.cloud import pubsub_v1
 project='andong-24-team-102'
 topic='projects/andong-24-team-102/topics/test'
 
-img_path=input('이미지 경로를 입력하세요: ')
+text='이미지 경로를 입력하세요: '
+text=text.encode('utf-8')
+
+img_path=input(text)
 
 with open(img_path, 'r') as img:
   global encoded_img
