@@ -9,7 +9,7 @@ text=text.encode('utf-8')
 
 img_path=input(text)
 
-with open(img_path, 'r') as img:
+with open(img_path, 'rㅠ') as img:
   global encoded_img
   encoded_img=base64.b64encode(img)
 
