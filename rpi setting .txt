@@ -11,3 +11,5 @@ sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-cli-app-
 gcloud components update
 
 pip install opencv-python-headless
+
+export GOOGLE_APPLICATION_CREDENTIALS='사용자 인증 파일'
