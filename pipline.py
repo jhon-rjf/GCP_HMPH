@@ -32,7 +32,7 @@ class saving_img_to_gcs(beam.DoFn):
     storage_client=storage.Client()  #process로 옮기면 피클링 안함
     bucket=storage_client.bucket(self.bucket_name)
     file_path=f'img/image_{self.index}.png'
-    blob=bucket.blob(f'{file_path}')
+    blob=bucket.blob(file_path)
     self.index+=1
     _,buffer_img=cv2.imencode('.png',np_arr_img)
     blob.upload_from_string(buffer_img.tobytes(),content_type='image/png')
