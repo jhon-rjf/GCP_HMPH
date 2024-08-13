@@ -1,0 +1,57 @@
+import time
+import base64
+import cv2
+import matplotlib.pyplot as plt
+from google.cloud import pubsub_v1
+
+class video_processor:
+  def __init__(self, video_path) -> None:
+    self.capture=cv2.VideoCapture(video_path)
+    self._check_video_path()
+
+  def _check_video_path(self) -> None:
+    incorrect_path=not self.capture.isOpened()
+
+    if(incorrect_path):
+      print('error: cloud not open video\n')
+      exit()
+
+  def encode_current_frame(self):
+    while True:
+      read_success, img_nparray=self.capture.read()
+      if read_success:
+        break
+      time.sleep(0.1)
+    print('camera is ready')
+
+    plt.imshow(img_nparray)
+    plt.show()
+
+    _,img_base64=cv2.imencode('.png', img_nparray)
+    img_byte=img_base64.tobytes()
+    encoded_img=base64.b64encode(img_byte)
+    return encoded_img
+
+class publisher:
+  def __init__(self, topic_id) -> None: 
+    self.publisher=pubsub_v1.PublisherClient()
+    self.topic_path=topic_id
+
+  def publish(self, product) -> None:
+    future=self.publisher.publish(self.topic_path, product)
+    try:
+      future.result()  # 메시지가 성공적으로 발행되었는지 확인
+      print("Published message to topic.")
+    except Exception as e:
+      print(f"Failed to publish message: {e}")
+
+video_path=0
+topic_id='projects/andong-24-team-102/topics/test'
+
+processor=video_processor(video_path)
+pub=publisher(topic_id)
+
+while True:
+  encoded_img=processor.encode_current_frame()
+  pub.publish(encoded_img)
+  time.sleep(1)
