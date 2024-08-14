@@ -1,7 +1,6 @@
 import os
 import time
 import base64
-import matplotlib.pyplot as plt
 import cv2
 from picamera2 import Picamera2
 from google.cloud import pubsub_v1
