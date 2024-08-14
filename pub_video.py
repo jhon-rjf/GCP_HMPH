@@ -1,56 +1,94 @@
+import time
 import base64
-import numpy as np
-from PIL import Image
-import io
 import cv2
-import apache_beam as beam
-from apache_beam.options.pipeline_options import PipelineOptions
-from google.cloud import storage
+from google.cloud import pubsub_v1
+topic_id='projects/andong-24-team-102/topics/test'
 
-def decode_base64(base64_str):
-  bin_img = base64.b64decode(base64_str)
-  img = Image.open(io.BytesIO(bin_img))
-  img = np.array(img)
-  return cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+class Video_processor:
+  def __init__(self, video_path) -> None:
+    try:
+      self.capture=cv2.VideoCapture(video_path)
+      self.capture.isOpened()
+    except FileNotFoundError :
+      raise FileNotFoundError("File isn't found, please check file path") 
+    except IsADirectoryError:
+      raise IsADirectoryError("This please enter a file path")
+    except  PermissionError :
+      raise PermissionError("Don't have permission to read this file")
 
-class saving_img_to_gcs(beam.DoFn):
-  def __init__(self, bucket_name):
-    self.image_number=0
-    self.bucket_name=bucket_name
+  def _check_video_path(self) -> None:
+    incorrect_path=not self.capture.isOpened()
 
-  def process(self,np_arr_img):
-    storage_client=storage.Client()  #process로 옮기면 피클링 안함
-    bucket=storage_client.bucket(self.bucket_name)
-    file_path=f'img/image_{self.image_number}.png'
-    blob=bucket.blob(f'{file_path}')
-    self.image_number+=1
+    if incorrect_path:
+      print('error: cloud not open video\n')
+      exit()
 
-    if self.image_number==600:
-      self.image_number=0
+  def encode_current_frame(self) -> None:
+    ret, img_nparr=self.capture.read()
+    imread_flase=not ret
 
-    _,buffer_img=cv2.imencode('.png',np_arr_img)
-    blob.upload_from_string(buffer_img.tobytes(),content_type='image/png')
+    if imread_flase:
+      self.video_restart()
+      ret, img_nparr=self.capture.read()
 
-topics='projects/andong-24-team-102/topics/test'           #토픽 경로 입력
-bucket_name='mypipestorage'
+    _, img=cv2.imencode('.png', img_nparr)
+    img_byte=img.tobytes()
+    encoded_img=base64.b64encode(img_byte)
+    return encoded_img
+  
+  def skip_video_per_sec(self, skip_time_sec) -> None:
+    skip_time_msec=skip_time_sec*1000
+    current_position=cv2.CAP_PROP_POS_MSEC
+    current_position_msec=self.capture.get(current_position)
+    next_position=current_position_msec+skip_time_msec
+    self.capture.set(current_position, next_position)
+    self.check_video_overrun(next_position)
 
-pipeline_options = PipelineOptions(
-  project='andong-24-team-102',     #프로젝트 id 입력
-  runner='DataflowRunner',
-  temp_location='gs://mypipestorage/temp',    
-  staging_location='gs://mypipestorage/staging',    #지역 설정할것
-  region='us-central1',    #위치 설정
-  max_num_workers=10,
-  save_main_session=True,
-  setup_file='./setup.py'
-  )
+  def check_video_overrun(self, next_position) -> None:
+    total_frames=int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps=self.capture.get(cv2.CAP_PROP_FPS)
+    video_length_msec=(total_frames/fps)*1000
+    video_overrun=video_length_msec<next_position
 
-def run():
-  with beam.Pipeline(options=pipeline_options) as p:
-    input = p | 'Read' >> beam.io.ReadFromPubSub(topic=topics)
-    decode_img = input | 'Decode' >> beam.Map(decode_base64) 
-    decode_img| 'save' >> beam.ParDo(saving_img_to_gcs(bucket_name))
+    if video_overrun:
+      self.video_restart()
 
-# 파이프라인 실행
-if __name__ == '__main__':
-    run()
+  def video_restart(self):
+    self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+class Publisher:
+  def __init__(self, topic_id) -> None: 
+    self.publisher=pubsub_v1.PublisherClient()
+    self.topic_path=topic_id
+
+  def publish(self, product) -> None:
+    future=self.publisher.publish(self.topic_path, product)
+    self.check_publsih(future)
+
+  def check_publsih(future) -> None:
+    try:
+      future.result()  
+      print("Published message to topic.")
+    except Exception as e:
+      print(f"Failed to publish message: {e}")
+
+path_error=(FileNotFoundError, IsADirectoryError)
+
+while True:
+  try:
+    video_path=input('please input path of video file: ')
+    processor=Video_processor(video_path)
+  except path_error:
+    pass
+  except PermissionError:
+    pass
+  else:
+    break
+
+pub=Publisher(topic_id)
+
+while True:
+  encoded_img=processor.encode_current_frame()
+  pub.publish(encoded_img)
+  time.sleep(1)
+  processor.skip_video_per_sec(1)
