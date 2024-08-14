@@ -14,4 +14,5 @@ pip install opencv-python-headless
 
 export GOOGLE_APPLICATION_CREDENTIALS='사용자 인증 파일'
 
+#sudo로 실행 시 가상환경 이용하기
 sudo ./vsysenv/bin/python3 cameratest.py
