@@ -4,9 +4,11 @@ import base64
 import cv2
 from picamera2
 from google.cloud import pubsub_v1
+
+# 환경 변수 설정
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'gcloud-team-project-credential-key.json'
 
-class videoProcessor:
+class VideoProcessor:
     def __init__(self):
         self.picamera2 = picamera2()
         self.picamera2.start_preview()
@@ -32,10 +34,9 @@ class Publisher:
     def publish(self, product):
         future = self.publisher.publish(self.topic_path, product)
         try:
-            future.result()  # 메시지가 성공적으로 발행되었는지 확인
-            print("Published message to topic.")
+            future.result() 
         except Exception as e:
-            print(f"Failed to publish message: {e}")
+            print(f"Failed to publish: {e}")
 
 def main():
     topic_id = 'projects/andong-24-team-102/topics/test'
@@ -47,11 +48,11 @@ def main():
         while True:
             encoded_img = processor.encode_current_frame()
             pub.publish(encoded_img)
-            time.sleep(1)  # 1초 대기
+            time.sleep(1) 
     except KeyboardInterrupt:
         print("Process interrupted.")
     finally:
         processor.picamera2.close()  
 
-if __name__ == "__main__":
+if __name__=='__main__':
     main()
