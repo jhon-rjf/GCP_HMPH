@@ -2,34 +2,20 @@ import time
 import base64
 import cv2
 from google.cloud import pubsub_v1
-topic_id='projects/andong-24-team-102/topics/test'
 
-class Video_processor:
-  def __init__(self, video_path) -> None:
-    try:
-      self.capture=cv2.VideoCapture(video_path)
-      self.capture.isOpened()
-    except FileNotFoundError :
-      raise FileNotFoundError("File isn't found, please check file path") 
-    except IsADirectoryError:
-      raise IsADirectoryError("This please enter a file path")
-    except  PermissionError :
-      raise PermissionError("Don't have permission to read this file")
-
-  def _check_video_path(self) -> None:
-    incorrect_path=not self.capture.isOpened()
-
-    if incorrect_path:
-      print('error: cloud not open video\n')
-      exit()
+class video_processor:
+  def __init__(self) -> None:
+    self.video_path=input('please input path of video file: ')
+    self.capture=cv2.VideoCapture(self.video_path)
+    self._check_video_path()
 
   def encode_current_frame(self) -> None:
-    ret, img_nparr=self.capture.read()
-    imread_flase=not ret
+    read, img_nparr=self.capture.read()
+    imread_flase=not read
 
     if imread_flase:
-      self.video_restart()
-      ret, img_nparr=self.capture.read()
+      self._video_restart()
+      _, img_nparr=self.capture.read()
 
     _, img=cv2.imencode('.png', img_nparr)
     img_byte=img.tobytes()
@@ -38,54 +24,40 @@ class Video_processor:
   
   def skip_video_per_sec(self, skip_time_sec) -> None:
     skip_time_msec=skip_time_sec*1000
-    current_position=cv2.CAP_PROP_POS_MSEC
-    current_position_msec=self.capture.get(current_position)
+    current_position_msec=self.capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
-    self.capture.set(current_position, next_position)
-    self.check_video_overrun(next_position)
+    self.capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
 
-  def check_video_overrun(self, next_position) -> None:
-    total_frames=int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps=self.capture.get(cv2.CAP_PROP_FPS)
-    video_length_msec=(total_frames/fps)*1000
-    video_overrun=video_length_msec<next_position
+  def _video_restart(self):
+    self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
 
-    if video_overrun:
-      self.video_restart()
+  def _check_video_path(self) -> None:
+    correct_path = self.capture.isOpened()
 
-  def video_restart(self):
-    self.capture.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    while not correct_path:
+      self.capture.release()    
+      print("Please check file path")
+      self.video_path=input('Please input path of video file: ')
+      self.capture=cv2.VideoCapture(self.video_path)
+      correct_path = self.capture.isOpened()
 
-class Publisher:
+class publisher:
   def __init__(self, topic_id) -> None: 
     self.publisher=pubsub_v1.PublisherClient()
     self.topic_path=topic_id
 
   def publish(self, product) -> None:
     future=self.publisher.publish(self.topic_path, product)
-    self.check_publsih(future)
-
-  def check_publsih(future) -> None:
+    
     try:
-      future.result()  
-      print("Published message to topic.")
-    except Exception as e:
-      print(f"Failed to publish message: {e}")
+      future.result()
+    except Exception as e:    #기본 재시도 로직 실패시 종료
+      print(f"Failed to publish: {e}")
+      exit()    
 
-path_error=(FileNotFoundError, IsADirectoryError)
-
-while True:
-  try:
-    video_path=input('please input path of video file: ')
-    processor=Video_processor(video_path)
-  except path_error:
-    pass
-  except PermissionError:
-    pass
-  else:
-    break
-
-pub=Publisher(topic_id)
+topic_id='projects/andong-24-team-102/topics/test'
+processor=video_processor()
+pub=publisher(topic_id)
 
 while True:
   encoded_img=processor.encode_current_frame()
