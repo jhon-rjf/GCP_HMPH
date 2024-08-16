@@ -11,9 +11,9 @@ class video_processor:
 
   def encode_current_frame(self) -> None:
     read, img_nparr=self.capture.read()
-    imread_flase=not read
+    imread_false=not read
 
-    if imread_flase:
+    if imread_false:
       self._video_restart()
       _, img_nparr=self.capture.read()
 
