@@ -64,3 +64,15 @@ while True:
   pub.publish(encoded_img)
   time.sleep(1)
   processor.skip_video_per_sec(1)
+
+
+'''
+    self._check_video_overrun()
+
+  def _check_video_overrun(self):
+    current_ratio=self.capture.get(cv2.CAP_PROP_POS_AVI_RATIO)
+    overrun=current_ratio>1
+
+    if overrun:
+      self._video_restart()
+'''
