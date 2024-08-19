@@ -2,7 +2,7 @@ import os
 import time
 import base64
 import cv2
-import picamera2
+from picamera2 import Picamera2
 from google.cloud import pubsub_v1
 
 # 환경 변수 설정
@@ -10,7 +10,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'gcloud-team-project-credential-k
 
 class VideoProcessor:
     def __init__(self):
-        self.picamera2 = picamera2()
+        self.picamera2 = Picamera2()
         self.picamera2.start_preview()
         time.sleep(2)  
         self.picamera2.start()
