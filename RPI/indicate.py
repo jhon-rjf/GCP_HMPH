@@ -14,7 +14,6 @@ class Indicater(ABC):
   
     for pin in self.pins:
       GPIO.setup(pin, GPIO.OUT)
-      print(type(pin))#테스트용
 
   @abstractmethod
   def indicate_safe(self) -> None:
@@ -38,7 +37,6 @@ class Indicater(ABC):
 
 class LED(Indicater):
   def __init__(self, *led_pins) -> None:    
-    print('led')#테스트용
     super().__init__(led_pins)
 
   def on(self,*led_pins) -> None:
@@ -71,7 +69,6 @@ class LED(Indicater):
 
 class Buzzer(Indicater):
   def __init__(self, *buzzer_pins:tuple) -> None:
-    print('buzzer')#테스트용
     super().__init__(buzzer_pins)
     
   def on(self, *buzzer_pins) -> None:
@@ -128,15 +125,17 @@ class Enquirer:
   
   def query(self, query) -> int:
     query_job=self.client.query(query)
-    results=query_job.result()
-    result=next(results,0)
-    return result[0]
+    result=query_job.result()
+
+    for count in result:  
+      person_count=count['person_count']
+    return person_count
 
 def main() -> None:
   measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
   led_pins=14,15
   buzzer_pins=13,
-  table_path='andong-24-team-102.vm_to_bq.fin'
+  table_path='andong-24-team-102.vm_to_bq.test0807'
   query=f""" 
     SELECT person_count
     FROM {table_path}
@@ -150,15 +149,27 @@ def main() -> None:
   enquirer=Enquirer()
   
   while True:
-    human_num=enquirer.query(query)
-    print(human_num)#테스트용, 지울것
-    density_per_sqmeter=human_num/measured_area
+    person_count=enquirer.query(query)
+    density_per_sqmeter=person_count/measured_area
 
-    safe=density_per_sqmeter<=3.5
-    caution=density_per_sqmeter<=4
+    warning=5<=density_per_sqmeter
     watch=density_per_sqmeter<=5
-    # warning=5<=density
+    caution=density_per_sqmeter<=4
+    safe=density_per_sqmeter<=3.5
 
+    '''
+    hazrd_level=safe+caution+watch+warning
+    
+    match hazrd_level:
+      case 1:
+        return indicater_controler.set_warning()
+      case 2:
+        return indicater_controler.set_watch()
+      case 3:
+        return indicater_controler.set_caution()
+      case 4:
+        return indicater_controler.set_safe()
+    '''
     if safe:
       indicater_controler.set_safe()
     elif caution:
@@ -167,7 +178,7 @@ def main() -> None:
       indicater_controler.set_watch()
     else:
       indicater_controler.set_warning()
-
+    
     time.sleep(1)
 
 if __name__=='__main__':
