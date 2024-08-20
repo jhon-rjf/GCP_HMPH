@@ -9,7 +9,6 @@ class Video_processor:
     self.capture=cv2.VideoCapture(self.video_path)
     self._check_video_path()
     self.video_length=self._get_video_length()
-    print(self.video_length)
 
   def encode_current_frame(self) -> None:
     _, img_nparr=self.capture.read()
@@ -22,14 +21,11 @@ class Video_processor:
     skip_time_msec=skip_time_sec*1000
     current_position_msec=self.capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
-    print(f'next position: {next_position}')
     video_length_msec=self.video_length*1000
-    print(f'video_length_mesc position: {video_length_msec}')
     is_overrun=next_position>video_length_msec
 
     if is_overrun:
       self._video_restart()
-      print('video is overrun')
     else:
       self.capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
 
@@ -47,10 +43,12 @@ class Video_processor:
 
     while not correct_path:
       self.capture.release()    
-      print("Please check file path")
       self.video_path=input('Please input path of video file: ')
       self.capture=cv2.VideoCapture(self.video_path)
       correct_path = self.capture.isOpened()
+
+  def __del__(self):
+    self.capture.release()
 
 class Ppublisher:
   def __init__(self, topic_id) -> None: 
