@@ -9,6 +9,7 @@ class Video_processor:
     self.capture=cv2.VideoCapture(self.video_path)
     self._check_video_path()
     self.video_length=self._get_video_length()
+    print(self.video_length)
 
   def encode_current_frame(self) -> None:
     _, img_nparr=self.capture.read()
@@ -21,10 +22,14 @@ class Video_processor:
     skip_time_msec=skip_time_sec*1000
     current_position_msec=self.capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
-    is_overrun=next_position>self.video_length
+    print(f'next position: {next_position}')
+    video_length_msec=self.video_length*1000
+    print(f'video_length_mesc position: {video_length_msec}')
+    is_overrun=next_position>video_length_msec
 
     if is_overrun:
       self._video_restart()
+      print('video is overrun')
     else:
       self.capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
 
@@ -32,9 +37,9 @@ class Video_processor:
     self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
 
   def _get_video_length(self):
-    self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 1)
-    video_length=self.capture.get(cv2.CAP_PROP_POS_MSEC)
-    self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
+    total_frame=int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps=int(self.capture.get(cv2.CAP_PROP_FPS))
+    video_length=int(total_frame/fps)-1
     return video_length
 
   def _check_video_path(self) -> None:
