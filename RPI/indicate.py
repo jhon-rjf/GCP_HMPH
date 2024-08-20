@@ -57,7 +57,7 @@ class LED(Alarm_unit):
 
   def indicate_caution(self) -> None:
     self.off()
-    self.on(self.led_pins[1])
+    self.on(self.led_pins[0])
   
   def indicate_watch(self) -> None:
     self.off()
@@ -110,7 +110,8 @@ class Enquirer:
   def query(self, query) -> int:
     query_job=self.client.query(query)
     results=query_job.result()
-    return results
+    result=next(results,0)
+    return result[0]
   
 class Controler:
   def __init__(self,*alert_units:Alarm_unit) -> None:
