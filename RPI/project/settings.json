@@ -1,0 +1,7 @@
+{
+  "led_pins": [14, 15],
+  "buzzer_pins": [13],
+  "table_path": "andong-24-team-102.vm_to_bq.fin3",
+  "query": "SELECT person_count FROM andong-24-team-102.vm_to_bq.fin3 ORDER BY timestamp DESC LIMIT 1",
+  "credential_path": "gcloud-team-project-credential-key.json"
+}
