@@ -36,7 +36,7 @@ class Unit_Controler(ABC):
       GPIO.setup(pin, GPIO.IN)
 
 class LED_Controler(Unit_Controler):
-  def __init__(self, *led_pins) -> None:    
+  def __init__(self, *led_pins:int) -> None:    
     super().__init__(*led_pins)
 
   def _on(self,*led_pins) -> None:
@@ -68,7 +68,7 @@ class LED_Controler(Unit_Controler):
       time.sleep(0.15)
 
 class Buzzer_Controller(Unit_Controler):
-  def __init__(self, *buzzer_pins:tuple) -> None:
+  def __init__(self, *buzzer_pins:int) -> None:
     super().__init__(*buzzer_pins)
     
   def _on(self, *buzzer_pins) -> None:
