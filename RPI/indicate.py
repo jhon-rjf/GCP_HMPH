@@ -170,19 +170,3 @@ if __name__=='__main__':
     main()
   finally:
     GPIO.cleanup()
-
-
-
-    # warning=5<=density_per_sqmeter
-
-  """   safty_level=safe+caution+watch+warning
-    
-    match safty_level:
-      case 1:
-        return indicater_controler.set_warning()
-      case 2:
-        return indicater_controler.set_watch()
-      case 3:
-        return indicater_controler.set_caution()
-      case 4:
-        return indicater_controler.set_safe() """
