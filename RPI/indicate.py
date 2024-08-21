@@ -1,11 +1,11 @@
+import json
 import os
+import time
+import itertools
 import RPi.GPIO as GPIO
 from abc import ABC, abstractmethod
 from google.cloud import bigquery
-import time
-import itertools
 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'gcloud-team-project-credential-key.json'
 GPIO.setmode(GPIO.BCM)
 
 class Unit_Controler(ABC):
@@ -16,15 +16,15 @@ class Unit_Controler(ABC):
       GPIO.setup(pin, GPIO.OUT)
 
   @abstractmethod
-  def indicate_safe(self) -> None:
+  def set_safe(self) -> None:
     pass
 
   @abstractmethod
-  def indicate_caution(self) -> None:
+  def set_caution(self) -> None:
     pass
 
   @abstractmethod
-  def indicate_watch(self) -> None:
+  def set_watch(self) -> None:
     pass
 
   @abstractmethod
@@ -35,7 +35,7 @@ class Unit_Controler(ABC):
     for pin in self.pins:
       GPIO.setup(pin, GPIO.IN)
 
-class LED_Controller(Unit_Controler):
+class LED_Controler(Unit_Controler):
   def __init__(self, *led_pins) -> None:    
     super().__init__(*led_pins)
 
@@ -49,14 +49,14 @@ class LED_Controller(Unit_Controler):
     for led in leds:
       GPIO.output(led, False)
 
-  def indicate_safe(self) -> None:
+  def set_safe(self) -> None:
     self._off()
 
-  def indicate_caution(self) -> None:
+  def set_caution(self) -> None:
     self._off()
     self._on(self.pins[0])
 
-  def indicate_watch(self) -> None:
+  def set_watch(self) -> None:
     self._on()
 
   def alert_warning(self) -> None:
@@ -81,13 +81,13 @@ class Buzzer_Controller(Unit_Controler):
     for buzzer in buzzers:
       GPIO.output(buzzer,False)
 
-  def indicate_safe(self) -> None:
+  def set_safe(self) -> None:
     self._off()
 
-  def indicate_caution(self) -> None:
+  def set_caution(self) -> None:
     self._off()
   
-  def indicate_watch(self) -> None:
+  def set_watch(self) -> None:
     self._off()
   
   def alert_warning(self) -> None:
@@ -101,22 +101,21 @@ class Buzzer_Controller(Unit_Controler):
 class Integrated_Controller:
   def __init__(self, *alert_units:Unit_Controler) -> None:
     self.alert_units=alert_units
-    self.units_cycle=itertools.cycle(alert_units)
 
   def set_safe(self) -> None:
     for unit in self.alert_units:
-      unit.indicate_safe()
+      unit.set_safe()
 
   def set_caution(self) -> None:
     for unit in self.alert_units:
-      unit.indicate_caution()
+      unit.set_caution()
 
   def set_watch(self) -> None:
     for unit in self.alert_units:
-      unit.indicate_watch()
+      unit.set_watch()
 
   def set_warning(self) -> None:
-    for unit in self.units_cycle:
+    for unit in self.alert_units:
       unit.alert_warning()
 
 class Enquirer:
@@ -132,10 +131,13 @@ class Enquirer:
     return person_count
 
 def main() -> None:
-  measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
-  led_pins=14,15
-  buzzer_pins=13,
-  table_path='andong-24-team-102.vm_to_bq.test0807'
+  with open('project/settings.json', 'r', encoding='utf-8') as file:
+    file_data=json.load(file)
+    led_pins=file_data['led_pins']
+    buzzer_pins=file_data['buzzer_pins']
+    table_path=file_data['table_path']
+    credential_path=file_data['credential_path']
+  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
   query=f""" 
     SELECT person_count
     FROM {table_path}
@@ -143,13 +145,16 @@ def main() -> None:
     LIMIT 1
     """
 
-  led=LED_Controller(*led_pins)
+  measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
+
+  led=LED_Controler(*led_pins)
   buzzer=Buzzer_Controller(*buzzer_pins)
   indicater_controler=Integrated_Controller(led,buzzer)
   enquirer=Enquirer()
   
   while True:
     person_count=enquirer.query(query)
+    print(person_count)#테스트용
     density_per_sqmeter=person_count/measured_area
 
     watch=density_per_sqmeter<=5
