@@ -1,7 +1,6 @@
 import json
 import os
 import time
-import itertools
 import RPi.GPIO as GPIO
 from abc import ABC, abstractmethod
 from google.cloud import bigquery
