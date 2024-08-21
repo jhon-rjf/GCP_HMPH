@@ -8,8 +8,8 @@ import itertools
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'gcloud-team-project-credential-key.json'
 GPIO.setmode(GPIO.BCM)
 
-class Indicater(ABC):
-  def __init__(self, pins:tuple) -> None:
+class Unit_Controler(ABC):
+  def __init__(self, *pins:int) -> None:
     self.pins=pins
   
     for pin in self.pins:
@@ -28,69 +28,69 @@ class Indicater(ABC):
     pass
 
   @abstractmethod
-  def alert_warining(self) -> None:
+  def alert_warning(self) -> None:
     pass
 
   def __del__(self) -> None:
     for pin in self.pins:
       GPIO.setup(pin, GPIO.IN)
 
-class LED(Indicater):
+class LED_Controller(Unit_Controler):
   def __init__(self, *led_pins) -> None:    
-    super().__init__(led_pins)
+    super().__init__(*led_pins)
 
-  def on(self,*led_pins) -> None:
+  def _on(self,*led_pins) -> None:
     leds=led_pins if led_pins else self.pins
     for led in leds:
       GPIO.output(led, True)
 
-  def off(self,*led_pins) -> None:
+  def _off(self,*led_pins) -> None:
     leds=led_pins if led_pins else self.pins
     for led in leds:
       GPIO.output(led, False)
 
   def indicate_safe(self) -> None:
-    self.off()
+    self._off()
 
   def indicate_caution(self) -> None:
-    self.off()
-    self.on(self.pins[0])
+    self._off()
+    self._on(self.pins[0])
 
   def indicate_watch(self) -> None:
-    self.on()
+    self._on()
 
-  def alert_warining(self) -> None:
-    self.off()
+  def alert_warning(self) -> None:
+    self._off()
     for led in self.pins:
-      self.on(led)
+      self._on(led)
       time.sleep(0.15)
-      self.off(led)
+      self._off(led)
       time.sleep(0.15)
 
-class Buzzer(Indicater):
+class Buzzer_Controller(Unit_Controler):
   def __init__(self, *buzzer_pins:tuple) -> None:
-    super().__init__(buzzer_pins)
+    super().__init__(*buzzer_pins)
     
-  def on(self, *buzzer_pins) -> None:
+  def _on(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self.pins
     for buzzer in buzzers:
       GPIO.output(buzzer, True)
 
-  def off(self, *buzzer_pins) -> None:
+  def _off(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self.pins
     for buzzer in buzzers:
       GPIO.output(buzzer,False)
 
   def indicate_safe(self) -> None:
-    self.off()
+    self._off()
 
   def indicate_caution(self) -> None:
-    self.off()
+    self._off()
   
   def indicate_watch(self) -> None:
-    self.off()
+    self._off()
   
-  def alert_warining(self) -> None:
+  def alert_warning(self) -> None:
     for pin in self.pins:
       pwm=GPIO.PWM(pin, 640)
       pwm.start(95)
@@ -98,8 +98,8 @@ class Buzzer(Indicater):
         pwm.ChangeFrequency(scale)
         time.sleep(0.1)
 
-class Indicater_Controler:
-  def __init__(self, *alert_units:Indicater) -> None:
+class Integrated_Controller:
+  def __init__(self, *alert_units:Unit_Controler) -> None:
     self.alert_units=alert_units
     self.units_cycle=itertools.cycle(alert_units)
 
@@ -117,7 +117,7 @@ class Indicater_Controler:
 
   def set_warning(self) -> None:
     for unit in self.units_cycle:
-      unit.alert_warining()
+      unit.alert_warning()
 
 class Enquirer:
   def __init__(self) -> None:
@@ -143,33 +143,19 @@ def main() -> None:
     LIMIT 1
     """
 
-  led=LED(*led_pins)
-  buzzer=Buzzer(*buzzer_pins)
-  indicater_controler=Indicater_Controler(led,buzzer)
+  led=LED_Controller(*led_pins)
+  buzzer=Buzzer_Controller(*buzzer_pins)
+  indicater_controler=Integrated_Controller(led,buzzer)
   enquirer=Enquirer()
   
   while True:
     person_count=enquirer.query(query)
     density_per_sqmeter=person_count/measured_area
 
-    warning=5<=density_per_sqmeter
     watch=density_per_sqmeter<=5
     caution=density_per_sqmeter<=4
     safe=density_per_sqmeter<=3.5
-
-    '''
-    hazrd_level=safe+caution+watch+warning
     
-    match hazrd_level:
-      case 1:
-        return indicater_controler.set_warning()
-      case 2:
-        return indicater_controler.set_watch()
-      case 3:
-        return indicater_controler.set_caution()
-      case 4:
-        return indicater_controler.set_safe()
-    '''
     if safe:
       indicater_controler.set_safe()
     elif caution:
@@ -182,6 +168,23 @@ def main() -> None:
     time.sleep(1)
 
 if __name__=='__main__':
-  main()
+  try:
+    main()
+  finally:
+    GPIO.cleanup()
 
 
+
+    # warning=5<=density_per_sqmeter
+
+  """   safty_level=safe+caution+watch+warning
+    
+    match safty_level:
+      case 1:
+        return indicater_controler.set_warning()
+      case 2:
+        return indicater_controler.set_watch()
+      case 3:
+        return indicater_controler.set_caution()
+      case 4:
+        return indicater_controler.set_safe() """
