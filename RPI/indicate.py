@@ -135,15 +135,9 @@ def main() -> None:
     file_data=json.load(file)
     led_pins=file_data['led_pins']
     buzzer_pins=file_data['buzzer_pins']
-    table_path=file_data['table_path']
     credential_path=file_data['credential_path']
+    query=file_data['query']
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
-  query=f""" 
-    SELECT person_count
-    FROM {table_path}
-    ORDER BY timestamp DESC
-    LIMIT 1
-    """
 
   measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
 
