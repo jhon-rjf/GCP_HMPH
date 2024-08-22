@@ -130,12 +130,19 @@ class Enquirer:
     return person_count
 
 def main() -> None:
-  with open('project/settings.json', 'r', encoding='utf-8') as file:
-    file_data=json.load(file)
-    led_pins=file_data['led_pins']
-    buzzer_pins=file_data['buzzer_pins']
-    credential_path=file_data['credential_path']
-    query=file_data['query']
+  settings_path=os.path.join('settings','indicate_settings.json')
+  try:
+    with open(settings_path, 'r', encoding='utf-8') as file:
+      setting_file_data=json.load(file)
+      led_pins=setting_file_data['led_pins']
+      buzzer_pins=setting_file_data['buzzer_pins']
+      credential_path=setting_file_data['credential_path']
+      query=setting_file_data['query']
+  except FileNotFoundError:
+    print('File not found')
+  except json.JSONDecodeError as e:
+    print('Error decoding json')
+    print(f'Error message: {e}')
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
   measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
@@ -170,3 +177,19 @@ if __name__=='__main__':
     main()
   finally:
     GPIO.cleanup()
+
+
+
+    # warning=5<=density_per_sqmeter
+
+  """   safty_level=safe+caution+watch+warning
+    
+    match safty_level:
+      case 1:
+        return indicater_controler.set_warning()
+      case 2:
+        return indicater_controler.set_watch()
+      case 3:
+        return indicater_controler.set_caution()
+      case 4:
+        return indicater_controler.set_safe() """
