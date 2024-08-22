@@ -1,11 +1,13 @@
+import os
+import json
 import time
 import base64
 import cv2
 from google.cloud import pubsub_v1
 
 class Video_processor:
-  def __init__(self) -> None:
-    self.video_path=input('please input path of video file: ')
+  def __init__(self, video_path) -> None:
+    self.video_path=video_path
     self.capture=cv2.VideoCapture(self.video_path)
     self._check_video_path()
     self.video_length=self._get_video_length()
@@ -42,7 +44,7 @@ class Video_processor:
     correct_path = self.capture.isOpened()
 
     while not correct_path:
-      self.capture.release()    
+      self.capture.release()
       self.video_path=input('Please input path of video file: ')
       self.capture=cv2.VideoCapture(self.video_path)
       correct_path = self.capture.isOpened()
@@ -65,8 +67,23 @@ class Ppublisher:
       exit()
 
 def main():
-  topic_id='projects/andong-24-team-102/topics/test'
-  processor=Video_processor()
+  setting_file_path=os.path.join('settings','pub_settings.json')
+  try:
+    with open(setting_file_path, 'r', encoding='utf-8') as file:
+      file_data=json.load(file)
+      topic_id=file_data['topic_id']
+      credential_path=file_data['credential_path']
+      video_path=file_data['video_path']
+  except FileNotFoundError as e:
+    print(f'Settings file is not found')
+    print(f'Error message: {e}')
+  except json.JSONDecodeError as e:
+    print(f'Error decoding Json\n {e}')
+    print(f'Error message: {e}')
+
+  os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
+
+  processor=Video_processor(video_path)
   pub=Ppublisher(topic_id)
 
   while True:
