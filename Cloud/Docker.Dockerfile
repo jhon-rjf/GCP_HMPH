@@ -1,5 +1,5 @@
 # 기본 이미지로 Python 3.12를 사용
-FROM apache/beam_python3.12.2_sdk:2.57.0
+FROM apache/beam_python3.12.2_sdk:2.58.0
 
 # 필요한 시스템 패키지를 설치
 RUN apt-get update && apt-get install -y \
