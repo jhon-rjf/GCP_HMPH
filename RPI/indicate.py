@@ -27,7 +27,7 @@ class Unit_Controler(ABC):
     pass
 
   @abstractmethod
-  def alert_warning(self) -> None:
+  def set_warning(self) -> None:
     pass
 
   def __del__(self) -> None:
@@ -58,7 +58,7 @@ class LED_Controler(Unit_Controler):
   def set_watch(self) -> None:
     self._on()
 
-  def alert_warning(self) -> None:
+  def set_warning(self) -> None:
     self._off()
     for led in self.pins:
       self._on(led)
@@ -89,7 +89,7 @@ class Buzzer_Controller(Unit_Controler):
   def set_watch(self) -> None:
     self._off()
   
-  def alert_warning(self) -> None:
+  def set_warning(self) -> None:
     for pin in self.pins:
       pwm=GPIO.PWM(pin, 640)
       pwm.start(95)
@@ -115,7 +115,7 @@ class Integrated_Controller:
 
   def set_warning(self) -> None:
     for unit in self.alert_units:
-      unit.alert_warning()
+      unit.set_warning()
 
 class Enquirer:
   def __init__(self) -> None:

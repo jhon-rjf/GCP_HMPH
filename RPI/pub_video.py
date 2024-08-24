@@ -31,10 +31,10 @@ class Video_processor:
     else:
       self.capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
 
-  def _video_restart(self):
+  def _video_restart(self) -> None:
     self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
 
-  def _get_video_length(self):
+  def _get_video_length(self) -> int:
     total_frame=int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
     fps=int(self.capture.get(cv2.CAP_PROP_FPS))
     video_length=int(total_frame/fps)-1
@@ -66,7 +66,7 @@ class Ppublisher:
       print(f"Failed to publish: {e}")
       exit()
 
-def main():
+def main() -> None:
   setting_file_path=os.path.join('settings','pub_settings.json')
   try:
     with open(setting_file_path, 'r', encoding='utf-8') as file:
