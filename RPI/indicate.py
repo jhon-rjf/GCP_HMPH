@@ -98,7 +98,7 @@ class Buzzer_Controller(Unit_Controller):
         time.sleep(0.1)
 
 class Integrated_Controller:
-  def __init__(self, *alert_units:Unit_Controller) -> None:
+  def __init__(self, *alert_units:tuple[Unit_Controller]) -> None:
     self.alert_units=alert_units
 
   def set_safe_all(self) -> None:

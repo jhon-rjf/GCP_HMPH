@@ -6,39 +6,47 @@ import cv2
 from picamera2 import Picamera2
 from google.cloud import pubsub_v1
 
-class VideoProcessor:
-  def __init__(self):
-    self.picamera2 = Picamera2()
+class Camera:
+  def __init__(self) -> None:
+    self.picamera2=Picamera2()
     self.picamera2.start_preview()
-    time.sleep(2)  
+    time.sleep(2)
     self.picamera2.start()
 
-  def capture_frame(self):
-    img_nparray = self.picamera2.capture_array()
-    return img_nparray
+  def capture_frame(self) -> list:
+    img_array=self.picamera2.capture_array()
+    return img_array
 
-  def encode_current_frame(self):
-    img_nparray = self.capture_frame()
-    _, img_base64 = cv2.imencode('.png', img_nparray)
-    img_byte = img_base64.tobytes() 
-    encoded_img = base64.b64encode(img_byte)
-    return encoded_img
-  def __del__(self):
+  def __del__(self) -> None:
     self.picamera2.close()
 
+class VideoProcessor:
+  def __init__(self) -> None:
+    self.frame
+
+  def get_frame(self, frame) -> None:
+    self.frame=frame
+
+  def encode_current_frame(self) -> str:
+    img_array = self.frame
+    _, img_base64 = cv2.imencode('.png', img_array)
+    img_byte = img_base64.tobytes()
+    encoded_img = base64.b64encode(img_byte)
+    return encoded_img
+
 class Publisher:
-  def __init__(self, topic_id):
+  def __init__(self, topic_id) -> None:
     self.publisher = pubsub_v1.PublisherClient()
     self.topic_path = topic_id
 
-  def publish(self, product):
+  def publish(self, product) -> None:
     future = self.publisher.publish(self.topic_path, product)
     try:
       future.result() 
     except Exception as e:
       print(f"Failed to publish: {e}")#테스트용
 
-def main():
+def main() -> None:
   setting_file_path=os.path.join('settings','pub_settings.json')
   try:
     with open(setting_file_path, 'r', encoding='utf-8') as file:
@@ -54,11 +62,14 @@ def main():
 
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
+  camera = Camera()
   processor = VideoProcessor()
   pub = Publisher(topic_id)
 
   try:
     while True:
+      frame=camera.capture_frame()
+      processor.get_frame(frame)
       encoded_img = processor.encode_current_frame()
       pub.publish(encoded_img)
       time.sleep(1)

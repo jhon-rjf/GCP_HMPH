@@ -13,8 +13,8 @@ class Video_processor:
     self.video_length=self._get_video_length()
 
   def encode_current_frame(self) -> None:
-    _, img_nparr=self.capture.read()
-    _, img=cv2.imencode('.png', img_nparr)
+    _, img_array=self.capture.read()
+    _, img=cv2.imencode('.png', img_array)
     img_byte=img.tobytes()
     encoded_img=base64.b64encode(img_byte)
     return encoded_img
@@ -24,12 +24,16 @@ class Video_processor:
     current_position_msec=self.capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
     video_length_msec=self.video_length*1000
+    self._check_overrun(next_position, video_length_msec)
+    
+  def _check_overrun(self, next_position, video_length_msec) -> None:
     is_overrun=next_position>video_length_msec
 
     if is_overrun:
       self._video_restart()
     else:
       self.capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
+
 
   def _video_restart(self) -> None:
     self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
@@ -49,7 +53,7 @@ class Video_processor:
       self.capture=cv2.VideoCapture(self.video_path)
       correct_path = self.capture.isOpened()
 
-  def __del__(self):
+  def __del__(self) -> None:
     self.capture.release()
 
 class Ppublisher:
