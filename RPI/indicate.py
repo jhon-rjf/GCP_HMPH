@@ -69,11 +69,6 @@ class LEDController(UnitController):
 class BuzzerController(UnitController):
   def __init__(self, *buzzer_pins:int) -> None:
     super().__init__(*buzzer_pins)
-    
-  def __set_on(self, *buzzer_pins) -> None:
-    buzzers=buzzer_pins if buzzer_pins else self._pins
-    for buzzer in buzzers:
-      GPIO.output(buzzer, True)
 
   def __set_off(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self._pins
@@ -139,10 +134,12 @@ def main() -> None:
       credential_path=setting_file_data['credential_path']
       query=setting_file_data['query']
   except FileNotFoundError:
-    print('File not found')
+    print('Settings File not found')
+    exit()
   except json.JSONDecodeError as e:
     print('Error decoding json')
     print(f'Error message: {e}')
+    exit()
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
   measured_area=int(input('면적을 입력해주세요(단위:m^2): '))

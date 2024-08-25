@@ -82,17 +82,17 @@ def main() -> None:
     print(f'Settings file is not found')
     print(f'Error message: {e}')
   except json.JSONDecodeError as e:
-    print(f'Error decoding Json\n {e}')
+    print(f'Error decoding Json')
     print(f'Error message: {e}')
 
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
   processor=VideoProcessor(video_path)
-  pub=Publisher(topic_id)
+  publisher=Publisher(topic_id)
 
   while True:
     encoded_img=processor.encode_current_frame()
-    pub.publish(encoded_img)
+    publisher.publish(encoded_img)
     time.sleep(1)
     processor.skip_video_per_sec(1)
 
