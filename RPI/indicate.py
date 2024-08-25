@@ -38,56 +38,56 @@ class LED_Controller(Unit_Controller):
   def __init__(self, *led_pins:int) -> None:    
     super().__init__(*led_pins)
 
-  def _on(self,*led_pins) -> None:
+  def _set_on(self,*led_pins) -> None:
     leds=led_pins if led_pins else self._pins
     for led in leds:
       GPIO.output(led, True)
 
-  def _off(self,*led_pins) -> None:
+  def _set_off(self,*led_pins) -> None:
     leds=led_pins if led_pins else self._pins
     for led in leds:
       GPIO.output(led, False)
 
   def set_safe(self) -> None:
-    self._off()
+    self._set_off()
 
   def set_caution(self) -> None:
-    self._off()
-    self._on(self._pins[0])
+    self._set_off()
+    self._set_on(self._pins[0])
 
   def set_watch(self) -> None:
-    self._on()
+    self._set_on()
 
   def set_warning(self) -> None:
-    self._off()
+    self._set_off()
     for led in self._pins:
-      self._on(led)
+      self._set_on(led)
       time.sleep(0.15)
-      self._off(led)
+      self._set_off(led)
       time.sleep(0.15)
 
 class Buzzer_Controller(Unit_Controller):
   def __init__(self, *buzzer_pins:int) -> None:
     super().__init__(*buzzer_pins)
     
-  def _on(self, *buzzer_pins) -> None:
+  def _set_on(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self._pins
     for buzzer in buzzers:
       GPIO.output(buzzer, True)
 
-  def _off(self, *buzzer_pins) -> None:
+  def _set_off(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self._pins
     for buzzer in buzzers:
       GPIO.output(buzzer,False)
 
   def set_safe(self) -> None:
-    self._off()
+    self._set_off()
 
   def set_caution(self) -> None:
-    self._off()
+    self._set_off()
   
   def set_watch(self) -> None:
-    self._off()
+    self._set_off()
   
   def set_warning(self) -> None:
     for pin in self._pins:
