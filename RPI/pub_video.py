@@ -66,7 +66,7 @@ class Publisher:
     
     try:
       future.result()
-    except Exception as e:    #기본 재시도 로직 실패시 종료
+    except Exception as e:    
       print(f"Failed to publish: {e}")
       exit()
 

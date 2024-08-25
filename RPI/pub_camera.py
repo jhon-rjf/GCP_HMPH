@@ -59,9 +59,11 @@ def main() -> None:
   except FileNotFoundError as e:
     print(f'File not found: {e}')
     print(f'Error message: {e}')
+    exit()
   except json.JSONDecodeError as e:
     print(f'Error decoding json {e}')
     print(f'Error message: {e}')
+    exit()
 
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
