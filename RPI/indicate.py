@@ -101,19 +101,19 @@ class Integrated_Controller:
   def __init__(self, *alert_units:Unit_Controller) -> None:
     self.alert_units=alert_units
 
-  def set_safe(self) -> None:
+  def set_safe_all(self) -> None:
     for unit in self.alert_units:
       unit.set_safe()
 
-  def set_caution(self) -> None:
+  def set_caution_all(self) -> None:
     for unit in self.alert_units:
       unit.set_caution()
 
-  def set_watch(self) -> None:
+  def set_watch_all(self) -> None:
     for unit in self.alert_units:
       unit.set_watch()
 
-  def set_warning(self) -> None:
+  def set_warning_all(self) -> None:
     for unit in self.alert_units:
       unit.set_warning()
 
@@ -162,13 +162,13 @@ def main() -> None:
     safe=density_per_sqmeter<=3.5
     
     if safe:
-      indicater_controler.set_safe()
+      indicater_controler.set_safe_all()
     elif caution:
-      indicater_controler.set_caution()
+      indicater_controler.set_caution_all()
     elif watch:
-      indicater_controler.set_watch()
+      indicater_controler.set_watch_all()
     else:
-      indicater_controler.set_warning()
+      indicater_controler.set_warning_all()
     
     time.sleep(1)
 
