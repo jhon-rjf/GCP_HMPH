@@ -5,15 +5,15 @@ import base64
 import cv2
 from google.cloud import pubsub_v1
 
-class Video_processor:
+class VideoProcessor:
   def __init__(self, video_path) -> None:
-    self.video_path=video_path
-    self.capture=cv2.VideoCapture(self.video_path)
-    self._check_video_path()
-    self.video_length=self._get_video_length()
+    self.__video_path=video_path
+    self.__capture=cv2.VideoCapture(self.__video_path)
+    self.__check_video_path()
+    self.__video_length=self.__get_video_length()
 
   def encode_current_frame(self) -> None:
-    _, img_array=self.capture.read()
+    _, img_array=self.__capture.read()
     _, img=cv2.imencode('.png', img_array)
     img_byte=img.tobytes()
     encoded_img=base64.b64encode(img_byte)
@@ -21,48 +21,48 @@ class Video_processor:
   
   def skip_video_per_sec(self, skip_time_sec) -> None:
     skip_time_msec=skip_time_sec*1000
-    current_position_msec=self.capture.get(cv2.CAP_PROP_POS_MSEC)
+    current_position_msec=self.__capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
-    video_length_msec=self.video_length*1000
-    self._check_overrun(next_position, video_length_msec)
+    video_length_msec=self.__video_length*1000
+    self.__check_overrun(next_position, video_length_msec)
     
-  def _check_overrun(self, next_position, video_length_msec) -> None:
+  def __check_overrun(self, next_position, video_length_msec) -> None:
     is_overrun=next_position>video_length_msec
 
     if is_overrun:
-      self._video_restart()
+      self.__video_restart()
     else:
-      self.capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
+      self.__capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
 
 
-  def _video_restart(self) -> None:
-    self.capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
+  def __video_restart(self) -> None:
+    self.__capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
 
-  def _get_video_length(self) -> int:
-    total_frame=int(self.capture.get(cv2.CAP_PROP_FRAME_COUNT))
-    fps=int(self.capture.get(cv2.CAP_PROP_FPS))
+  def __get_video_length(self) -> int:
+    total_frame=int(self.__capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps=int(self.__capture.get(cv2.CAP_PROP_FPS))
     video_length=int(total_frame/fps)-1
     return video_length
 
-  def _check_video_path(self) -> None:
-    correct_path = self.capture.isOpened()
+  def __check_video_path(self) -> None:
+    correct_path = self.__capture.isOpened()
 
     while not correct_path:
-      self.capture.release()
-      self.video_path=input('Please input path of video file: ')
-      self.capture=cv2.VideoCapture(self.video_path)
-      correct_path = self.capture.isOpened()
+      self.__capture.release()
+      self.__video_path=input('Please input path of video file: ')
+      self.__capture=cv2.VideoCapture(self.__video_path)
+      correct_path = self.__capture.isOpened()
 
   def __del__(self) -> None:
-    self.capture.release()
+    self.__capture.release()
 
-class Ppublisher:
+class Publisher:
   def __init__(self, topic_id) -> None: 
-    self.publisher=pubsub_v1.PublisherClient()
-    self.topic_path=topic_id
+    self.__publisher=pubsub_v1.PublisherClient()
+    self.__topic_path=topic_id
 
   def publish(self, product) -> None:
-    future=self.publisher.publish(self.topic_path, product)
+    future=self.__publisher.publish(self.__topic_path, product)
     
     try:
       future.result()
@@ -87,8 +87,8 @@ def main() -> None:
 
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
-  processor=Video_processor(video_path)
-  pub=Ppublisher(topic_id)
+  processor=VideoProcessor(video_path)
+  pub=Publisher(topic_id)
 
   while True:
     encoded_img=processor.encode_current_frame()

@@ -7,7 +7,7 @@ from google.cloud import bigquery
 
 GPIO.setmode(GPIO.BCM)
 
-class Unit_Controller(ABC):
+class UnitController(ABC):
   def __init__(self, *pins:int) -> None:
     self._pins=pins
   
@@ -34,60 +34,60 @@ class Unit_Controller(ABC):
     for pin in self._pins:
       GPIO.setup(pin, GPIO.IN)
 
-class LED_Controller(Unit_Controller):
+class LEDController(UnitController):
   def __init__(self, *led_pins:int) -> None:    
     super().__init__(*led_pins)
 
-  def _set_on(self,*led_pins) -> None:
+  def __set_on(self,*led_pins) -> None:
     leds=led_pins if led_pins else self._pins
     for led in leds:
       GPIO.output(led, True)
 
-  def _set_off(self,*led_pins) -> None:
+  def __set_off(self,*led_pins) -> None:
     leds=led_pins if led_pins else self._pins
     for led in leds:
       GPIO.output(led, False)
 
   def set_safe(self) -> None:
-    self._set_off()
+    self.__set_off()
 
   def set_caution(self) -> None:
-    self._set_off()
-    self._set_on(self._pins[0])
+    self.__set_off()
+    self.__set_on(self._pins[0])
 
   def set_watch(self) -> None:
-    self._set_on()
+    self.__set_on()
 
   def set_warning(self) -> None:
-    self._set_off()
+    self.__set_off()
     for led in self._pins:
-      self._set_on(led)
+      self.__set_on(led)
       time.sleep(0.15)
-      self._set_off(led)
+      self.__set_off(led)
       time.sleep(0.15)
 
-class Buzzer_Controller(Unit_Controller):
+class BuzzerController(UnitController):
   def __init__(self, *buzzer_pins:int) -> None:
     super().__init__(*buzzer_pins)
     
-  def _set_on(self, *buzzer_pins) -> None:
+  def __set_on(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self._pins
     for buzzer in buzzers:
       GPIO.output(buzzer, True)
 
-  def _set_off(self, *buzzer_pins) -> None:
+  def __set_off(self, *buzzer_pins) -> None:
     buzzers=buzzer_pins if buzzer_pins else self._pins
     for buzzer in buzzers:
       GPIO.output(buzzer,False)
 
   def set_safe(self) -> None:
-    self._set_off()
+    self.__set_off()
 
   def set_caution(self) -> None:
-    self._set_off()
+    self.__set_off()
   
   def set_watch(self) -> None:
-    self._set_off()
+    self.__set_off()
   
   def set_warning(self) -> None:
     for pin in self._pins:
@@ -97,32 +97,32 @@ class Buzzer_Controller(Unit_Controller):
         pwm.ChangeFrequency(scale)
         time.sleep(0.1)
 
-class Integrated_Controller:
-  def __init__(self, *alert_units:tuple[Unit_Controller]) -> None:
-    self.alert_units=alert_units
+class IntegratedController:
+  def __init__(self, *alert_units:tuple[UnitController]) -> None:
+    self.__alert_units=alert_units
 
   def set_safe_all(self) -> None:
-    for unit in self.alert_units:
+    for unit in self.__alert_units:
       unit.set_safe()
 
   def set_caution_all(self) -> None:
-    for unit in self.alert_units:
+    for unit in self.__alert_units:
       unit.set_caution()
 
   def set_watch_all(self) -> None:
-    for unit in self.alert_units:
+    for unit in self.__alert_units:
       unit.set_watch()
 
   def set_warning_all(self) -> None:
-    for unit in self.alert_units:
+    for unit in self.__alert_units:
       unit.set_warning()
 
 class Enquirer:
   def __init__(self) -> None:
-    self._client=bigquery.Client()
+    self.__client=bigquery.Client()
   
   def query(self, query) -> int:
-    query_job=self._client.query(query)
+    query_job=self.__client.query(query)
     result=query_job.result()
 
     for count in result:  
@@ -147,9 +147,9 @@ def main() -> None:
 
   measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
 
-  led=LED_Controller(*led_pins)
-  buzzer=Buzzer_Controller(*buzzer_pins)
-  indicater_controler=Integrated_Controller(led,buzzer)
+  led=LEDController(*led_pins)
+  buzzer=BuzzerController(*buzzer_pins)
+  indicater_controler=IntegratedController(led,buzzer)
   enquirer=Enquirer()
   
   while True:

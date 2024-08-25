@@ -8,27 +8,30 @@ from google.cloud import pubsub_v1
 
 class Camera:
   def __init__(self) -> None:
-    self.picamera2=Picamera2()
-    self.picamera2.start_preview()
+    self.__camera=Picamera2()
+    self.__camera_start()
+  
+  def __camera_start(self) -> None:
+    self.__camera.start_preview()
     time.sleep(2)
-    self.picamera2.start()
+    self.__camera.start()
 
-  def capture_frame(self) -> list:
-    img_array=self.picamera2.capture_array()
+  def capture_frame(self) -> list[int]:
+    img_array=self.__camera.capture_array()
     return img_array
 
   def __del__(self) -> None:
-    self.picamera2.close()
+    self.__camera.close()
 
 class VideoProcessor:
   def __init__(self) -> None:
-    self.frame
+    self.__frame
 
   def get_frame(self, frame) -> None:
-    self.frame=frame
+    self.__frame=frame
 
-  def encode_current_frame(self) -> str:
-    img_array = self.frame
+  def encode_frame(self) -> str:
+    img_array = self.__frame
     _, img_base64 = cv2.imencode('.png', img_array)
     img_byte = img_base64.tobytes()
     encoded_img = base64.b64encode(img_byte)
@@ -36,11 +39,11 @@ class VideoProcessor:
 
 class Publisher:
   def __init__(self, topic_id) -> None:
-    self.publisher = pubsub_v1.PublisherClient()
-    self.topic_path = topic_id
+    self.__publisher = pubsub_v1.PublisherClient()
+    self.__topic_path = topic_id
 
   def publish(self, product) -> None:
-    future = self.publisher.publish(self.topic_path, product)
+    future = self.__publisher.publish(self.__topic_path, product)
     try:
       future.result() 
     except Exception as e:
@@ -70,7 +73,7 @@ def main() -> None:
     while True:
       frame=camera.capture_frame()
       processor.get_frame(frame)
-      encoded_img = processor.encode_current_frame()
+      encoded_img = processor.encode_frame()
       pub.publish(encoded_img)
       time.sleep(1)
   finally:
