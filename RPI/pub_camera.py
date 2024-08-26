@@ -28,11 +28,11 @@ class VideoProcessor:
     self.get_frame
 
   def get_frame(self, frame) -> None:
-    self.__frame=frame
+    RGB_image=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
+    self.__image=RGB_image
 
   def encode_frame(self) -> str:
-    img_array = self.__frame
-    _, img_base64 = cv2.imencode('.png', img_array)
+    _, img_base64 = cv2.imencode('.png', self.__image)
     img_byte = img_base64.tobytes()
     encoded_img = base64.b64encode(img_byte)
     return encoded_img
@@ -49,7 +49,6 @@ class Publisher:
     except Exception as e:
       print(f"Failed to publish: {e}")#테스트용
     
-
 def main() -> None:
   setting_file_path=os.path.join('settings','pub_settings.json')
   settings_file_data=open_file(setting_file_path)
