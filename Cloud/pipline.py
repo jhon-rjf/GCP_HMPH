@@ -1,13 +1,3 @@
-#반드시 설치할 것
-#!pip3 insall apache_beam
-#!pip3 install apache_baeam[gcp]
-#!pip3 install opencv-python
-#!pip3 install numpy
-#!pip3 install pillow
-#!gcloud services disable dataflow.googleapis.com --force
-#!gcloud services enable dataflow.googleapis.com
-#requirement_file
-
 import base64
 import numpy as np
 from PIL import Image
