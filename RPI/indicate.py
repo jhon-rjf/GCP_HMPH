@@ -126,20 +126,11 @@ class Enquirer:
 
 def main() -> None:
   settings_path=os.path.join('settings','indicate_settings.json')
-  try:
-    with open(settings_path, 'r', encoding='utf-8') as file:
-      setting_file_data=json.load(file)
-      led_pins=setting_file_data['led_pins']
-      buzzer_pins=setting_file_data['buzzer_pins']
-      credential_path=setting_file_data['credential_path']
-      query=setting_file_data['query']
-  except FileNotFoundError:
-    print('Settings File not found')
-    exit()
-  except json.JSONDecodeError as e:
-    print('Error decoding json')
-    print(f'Error message: {e}')
-    exit()
+  settings_file_data=open_file(settings_path)
+  led_pins=settings_file_data['led_pins']
+  buzzer_pins=settings_file_data['buzzer_pins']
+  credential_path=settings_file_data['credential_path']
+  query=settings_file_data['query']
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
   measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
@@ -168,6 +159,20 @@ def main() -> None:
       indicater_controler.set_warning_all()
     
     time.sleep(1)
+
+def open_file(file_path):
+  try:
+    with open(file_path, 'r', encoding='utf-8') as file:
+      file_data=json.load(file)
+      return file_data
+  except FileNotFoundError as e:
+    print(f'File not found: {e}')
+    print(f'Error message: {e}')
+    exit()
+  except json.JSONDecodeError as e:
+    print(f'Error decoding json {e}')
+    print(f'Error message: {e}')
+    exit()
 
 if __name__=='__main__':
   try:
