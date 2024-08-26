@@ -1,0 +1,5 @@
+{
+  "topic_id": "projects/andong-24-team-102/topics/test",
+  "credential_path": "gcloud-team-project-credential-key.json",
+  "video_path":"./video.mp4"
+}
