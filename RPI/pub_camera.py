@@ -25,7 +25,7 @@ class Camera:
 
 class VideoProcessor:
   def __init__(self) -> None:
-    self.__frame
+    self.get_frame
 
   def get_frame(self, frame) -> None:
     self.__frame=frame
@@ -48,23 +48,13 @@ class Publisher:
       future.result() 
     except Exception as e:
       print(f"Failed to publish: {e}")#테스트용
+    
 
 def main() -> None:
   setting_file_path=os.path.join('settings','pub_settings.json')
-  try:
-    with open(setting_file_path, 'r', encoding='utf-8') as file:
-      file_data=json.load(file)
-      topic_id=file_data['topic_id']
-      credential_path=file_data['credential_path']
-  except FileNotFoundError as e:
-    print(f'File not found: {e}')
-    print(f'Error message: {e}')
-    exit()
-  except json.JSONDecodeError as e:
-    print(f'Error decoding json {e}')
-    print(f'Error message: {e}')
-    exit()
-
+  settings_file_data=open_file(setting_file_path)
+  topic_id=settings_file_data['topic_id']
+  credential_path=settings_file_data['credential_path']
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
   camera = Camera()
@@ -79,7 +69,21 @@ def main() -> None:
       pub.publish(encoded_img)
       time.sleep(1)
   finally:
-    processor.picamera2.close()  
+    camera.close()  
+
+def open_file(file_path):
+  try:
+    with open(file_path, 'r', encoding='utf-8') as file:
+      file_data=json.load(file)
+      return file_data
+  except FileNotFoundError as e:
+    print(f'File not found: {e}')
+    print(f'Error message: {e}')
+    exit()
+  except json.JSONDecodeError as e:
+    print(f'Error decoding json {e}')
+    print(f'Error message: {e}')
+    exit()
 
 if __name__=='__main__':
   main()
