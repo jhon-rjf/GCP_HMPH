@@ -72,19 +72,10 @@ class Publisher:
 
 def main() -> None:
   setting_file_path=os.path.join('settings','pub_settings.json')
-  try:
-    with open(setting_file_path, 'r', encoding='utf-8') as file:
-      file_data=json.load(file)
-      topic_id=file_data['topic_id']
-      credential_path=file_data['credential_path']
-      video_path=file_data['video_path']
-  except FileNotFoundError as e:
-    print(f'Settings file is not found')
-    print(f'Error message: {e}')
-  except json.JSONDecodeError as e:
-    print(f'Error decoding Json')
-    print(f'Error message: {e}')
-
+  settings_file_data=open_file(setting_file_path)
+  topic_id=settings_file_data['topic_id']
+  credential_path=settings_file_data['credential_path']
+  video_path=settings_file_data['video_path']
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
   processor=VideoProcessor(video_path)
@@ -95,6 +86,20 @@ def main() -> None:
     publisher.publish(encoded_img)
     time.sleep(1)
     processor.skip_video_per_sec(1)
+
+def open_file(file_path):
+  try:
+    with open(file_path, 'r', encoding='utf-8') as file:
+      file_data=json.load(file)
+      return file_data
+  except FileNotFoundError as e:
+    print(f'File not found: {e}')
+    print(f'Error message: {e}')
+    exit()
+  except json.JSONDecodeError as e:
+    print(f'Error decoding json {e}')
+    print(f'Error message: {e}')
+    exit()
 
 if __name__=='__main__':
   main()
