@@ -1,164 +1,91 @@
-import json
 import os
+import json
 import time
-import RPi.GPIO as GPIO
-from abc import ABC, abstractmethod
-from google.cloud import bigquery
+import base64
+import cv2
+from google.cloud import pubsub_v1
 
-GPIO.setmode(GPIO.BCM)
+class VideoProcessor:
+  def __init__(self, video_path) -> None:
+    self.__video_path=video_path
+    self.__capture=cv2.VideoCapture(self.__video_path)
+    self.__check_video_path()
+    self.__video_length=self.__get_video_length()
 
-class UnitController(ABC):
-  def __init__(self, *pins:int) -> None:
-    self._pins=pins
+  def encode_current_frame(self) -> None:
+    _, img_array=self.__capture.read()
+    _, img=cv2.imencode('.png', img_array)
+    img_byte=img.tobytes()
+    encoded_img=base64.b64encode(img_byte)
+    return encoded_img
   
-    for pin in self._pins:
-      GPIO.setup(pin, GPIO.OUT)
+  def skip_video_per_sec(self, skip_time_sec) -> None:
+    skip_time_msec=skip_time_sec*1000
+    current_position_msec=self.__capture.get(cv2.CAP_PROP_POS_MSEC)
+    next_position=current_position_msec+skip_time_msec
+    video_length_msec=self.__video_length*1000
+    self.__check_overrun(next_position, video_length_msec)
+    
+  def __check_overrun(self, next_position, video_length_msec) -> None:
+    is_overrun=next_position>video_length_msec
 
-  @abstractmethod
-  def set_safe(self) -> None:
-    pass
+    if is_overrun:
+      self.__video_restart()
+    else:
+      self.__capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
 
-  @abstractmethod
-  def set_caution(self) -> None:
-    pass
 
-  @abstractmethod
-  def set_watch(self) -> None:
-    pass
+  def __video_restart(self) -> None:
+    self.__capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
 
-  @abstractmethod
-  def set_warning(self) -> None:
-    pass
+  def __get_video_length(self) -> int:
+    total_frame=int(self.__capture.get(cv2.CAP_PROP_FRAME_COUNT))
+    fps=int(self.__capture.get(cv2.CAP_PROP_FPS))
+    video_length=int(total_frame/fps)-1
+    return video_length
+
+  def __check_video_path(self) -> None:
+    correct_path = self.__capture.isOpened()
+
+    while not correct_path:
+      self.__capture.release()
+      self.__video_path=input('Please input path of video file: ')
+      self.__capture=cv2.VideoCapture(self.__video_path)
+      correct_path = self.__capture.isOpened()
 
   def __del__(self) -> None:
-    for pin in self._pins:
-      GPIO.setup(pin, GPIO.IN)
+    self.__capture.release()
 
-class LEDController(UnitController):
-  def __init__(self, *led_pins:int) -> None:    
-    super().__init__(*led_pins)
+class Publisher:
+  def __init__(self, topic_id) -> None: 
+    self.__publisher=pubsub_v1.PublisherClient()
+    self.__topic_path=topic_id
 
-  def __set_on(self,*led_pins) -> None:
-    leds=led_pins if led_pins else self._pins
-    for led in leds:
-      GPIO.output(led, True)
-
-  def __set_off(self,*led_pins) -> None:
-    leds=led_pins if led_pins else self._pins
-    for led in leds:
-      GPIO.output(led, False)
-
-  def set_safe(self) -> None:
-    self.__set_off()
-
-  def set_caution(self) -> None:
-    self.__set_off()
-    self.__set_on(self._pins[0])
-
-  def set_watch(self) -> None:
-    self.__set_on()
-
-  def set_warning(self) -> None:
-    self.__set_off()
-    for led in self._pins:
-      self.__set_on(led)
-      time.sleep(0.15)
-      self.__set_off(led)
-      time.sleep(0.15)
-
-class BuzzerController(UnitController):
-  def __init__(self, *buzzer_pins:int) -> None:
-    super().__init__(*buzzer_pins)
-
-  def __set_off(self, *buzzer_pins) -> None:
-    buzzers=buzzer_pins if buzzer_pins else self._pins
-    for buzzer in buzzers:
-      GPIO.output(buzzer,False)
-
-  def set_safe(self) -> None:
-    self.__set_off()
-
-  def set_caution(self) -> None:
-    self.__set_off()
-  
-  def set_watch(self) -> None:
-    self.__set_off()
-  
-  def set_warning(self) -> None:
-    for pin in self._pins:
-      pwm=GPIO.PWM(pin, 640)
-      pwm.start(95)
-      for scale in range(700,1500,50):
-        pwm.ChangeFrequency(scale)
-        time.sleep(0.1)
-
-class IntegratedController:
-  def __init__(self, *alert_units:tuple[UnitController]) -> None:
-    self.__alert_units=alert_units
-
-  def set_safe_all(self) -> None:
-    for unit in self.__alert_units:
-      unit.set_safe()
-
-  def set_caution_all(self) -> None:
-    for unit in self.__alert_units:
-      unit.set_caution()
-
-  def set_watch_all(self) -> None:
-    for unit in self.__alert_units:
-      unit.set_watch()
-
-  def set_warning_all(self) -> None:
-    for unit in self.__alert_units:
-      unit.set_warning()
-
-class Enquirer:
-  def __init__(self) -> None:
-    self.__client=bigquery.Client()
-  
-  def query(self, query) -> int:
-    query_job=self.__client.query(query)
-    result=query_job.result()
-
-    for count in result:  
-      person_count=count['person_count']
-    return person_count
+  def publish(self, product) -> None:
+    future=self.__publisher.publish(self.__topic_path, product)
+    
+    try:
+      future.result()
+    except Exception as e:    
+      print(f"Failed to publish: {e}")
+      exit()
 
 def main() -> None:
-  settings_path=os.path.join('settings','indicate_settings.json')
-  settings_file_data=open_file(settings_path)
-  led_pins=settings_file_data['led_pins']
-  buzzer_pins=settings_file_data['buzzer_pins']
+  setting_file_path=os.path.join('settings','pub_settings.json')
+  settings_file_data=open_file(setting_file_path)
+  topic_id=settings_file_data['topic_id']
   credential_path=settings_file_data['credential_path']
-  query=settings_file_data['query']
+  video_path=settings_file_data['video_path']
   os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
-  measured_area=int(input('면적을 입력해주세요(단위:m^2): '))
+  processor=VideoProcessor(video_path)
+  publisher=Publisher(topic_id)
 
-  led=LEDController(*led_pins)
-  buzzer=BuzzerController(*buzzer_pins)
-  indicater_controler=IntegratedController(led,buzzer)
-  enquirer=Enquirer()
-  
   while True:
-    person_count=enquirer.query(query)
-    print(person_count)#테스트용
-    density_per_sqmeter=person_count/measured_area
-
-    watch=density_per_sqmeter<=5
-    caution=density_per_sqmeter<=4
-    safe=density_per_sqmeter<=3.5
-    
-    if safe:
-      indicater_controler.set_safe_all()
-    elif caution:
-      indicater_controler.set_caution_all()
-    elif watch:
-      indicater_controler.set_watch_all()
-    else:
-      indicater_controler.set_warning_all()
-    
+    encoded_img=processor.encode_current_frame()
+    publisher.publish(encoded_img)
     time.sleep(1)
+    processor.skip_video_per_sec(1)
 
 def open_file(file_path):
   try:
@@ -175,7 +102,4 @@ def open_file(file_path):
     exit()
 
 if __name__=='__main__':
-  try:
-    main()
-  finally:
-    GPIO.cleanup()
+  main()
