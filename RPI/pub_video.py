@@ -19,7 +19,7 @@ class VideoProcessor:
     encoded_img=base64.b64encode(img_byte)
     return encoded_img
   
-  def skip_video_per_sec(self, skip_time_sec) -> None:
+  def skip_by_sec(self, skip_time_sec) -> None:
     skip_time_msec=skip_time_sec*1000
     current_position_msec=self.__capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
@@ -33,7 +33,6 @@ class VideoProcessor:
       self.__video_restart()
     else:
       self.__capture.set(cv2.CAP_PROP_POS_MSEC, next_position)
-
 
   def __video_restart(self) -> None:
     self.__capture.set(cv2.CAP_PROP_POS_AVI_RATIO, 0)
@@ -85,7 +84,7 @@ def main() -> None:
     encoded_img=processor.encode_current_frame()
     publisher.publish(encoded_img)
     time.sleep(1)
-    processor.skip_video_per_sec(1)
+    processor.skip_by_sec(1)
 
 def open_file(file_path):
   try:
