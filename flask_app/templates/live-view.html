@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live View</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.socket.io/socket.io-3.1.3.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo"></div>
+                <span class="team-name">Team 2 - HMPH</span>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+                    </svg>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+                <a href="/recent-records" class="nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061A1.125 1.125 0 0 1 21 8.689v8.122ZM11.25 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061a1.125 1.125 0 0 1 1.683.977v8.122Z" />
+                    </svg>
+                    <span class="nav-text">Recent records</span>
+                </a>
+                <a href="/live-view" class="nav-link active">
+                    <img src="https://www.svgrepo.com/show/529140/play-stream.svg" class="nav-icon" alt="Live View Icon">
+                    <span class="nav-text">Live View</span>
+                </a>
+                <a href="/chat" class="nav-link">
+                    <img src="https://www.svgrepo.com/show/339963/chat-bot.svg" class="nav-icon" alt="Chat Icon">
+                    <span class="nav-text">Chat</span>
+                </a>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="header-title">Live View</h1>
+            </div>
+            <div class="grid">
+                <div class="grid-item full-width">
+                    <div class="iframe-container">
+                        <!-- 비디오 스트림과 AI 결과 표시 영역 -->
+                        <img id="liveVideo" src="/video_feed" alt="Live stream will appear here">
+                        <div id="aiResult">AI results will appear here.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation for Mobile -->
+    <div class="bottom-nav">
+        <a href="/" class="nav-link">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+            </svg>
+        </a>
+        <a href="/recent-records" class="nav-link">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="nav-icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061A1.125 1.125 0 0 1 21 8.689v8.122ZM11.25 16.811c0 .864-.933 1.406-1.683.977l-7.108-4.061a1.125 1.125 0 0 1 0-1.954l7.108-4.061a1.125 1.125 0 0 1 1.683.977v8.122Z" />
+        </a>
+        <a href="/live-view" class="nav-link active">
+            <img src="https://www.svgrepo.com/show/529140/play-stream.svg" class="nav-icon" alt="Live View Icon">
+        </a>
+        <a href="/chat" class="nav-link">
+            <img src="https://www.svgrepo.com/show/339963/chat-bot.svg" class="nav-icon" alt="Chat Icon">
+        </a>
+    </div>
+
+    <!-- WebSocket 연결 설정 -->
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port + '/video');
+
+        socket.on('ai_result', function(msg) {
+            document.getElementById('aiResult').textContent = 'Detected Objects: ' + msg.bbox_count;
+        });
+    </script>
+</body>
+</html>
