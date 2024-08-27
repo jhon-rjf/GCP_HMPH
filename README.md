@@ -7,9 +7,7 @@
 ## 프레젠테이션
 아래는 이 프로젝트에 대한 상세한 프레젠테이션입니다:
 
-<div align="center">
-  <iframe src="https://docs.google.com/presentation/d/13FEeBHMOEWEBfjOnqBWsbE8tzCHNL2oqJx4HA8yl5AY/embed?start=false&loop=false&delayms=3000" frameborder="0" width="1440" height="839" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
-</div>
+[![GoogleSLide](source/image/thimbnail.png)](https://docs.google.com/presentation/d/13FEeBHMOEWEBfjOnqBWsbE8tzCHNL2oqJx4HA8yl5AY/edit?usp=sharing)
 
 ## 주요사용 GCP  기능
 - Google Dataflow
