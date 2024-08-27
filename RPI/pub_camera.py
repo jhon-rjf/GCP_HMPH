@@ -25,9 +25,9 @@ class Camera:
 
 class VideoProcessor:
   def __init__(self) -> None:
-    self.get_frame
+    self.take_frame
 
-  def get_frame(self, frame) -> None:
+  def take_frame(self, frame) -> None:
     RGB_image=cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
     self.__image=RGB_image
 
@@ -63,7 +63,7 @@ def main() -> None:
   try:
     while True:
       frame=camera.capture()
-      processor.get_frame(frame)
+      processor.take_frame(frame)
       encoded_img = processor.encode_frame()
       pub.publish(encoded_img)
       time.sleep(1)
