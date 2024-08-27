@@ -9,14 +9,14 @@ from google.cloud import pubsub_v1
 class Camera:
   def __init__(self) -> None:
     self.__camera=Picamera2()
-    self.__camera_start()
+    self.__start()
   
-  def __camera_start(self) -> None:
+  def __start(self) -> None:
     self.__camera.start_preview()
     time.sleep(2)
     self.__camera.start()
 
-  def capture_frame(self) -> list[int]:
+  def capture(self) -> list[int]:
     img_array=self.__camera.capture_array()
     return img_array
 
@@ -62,7 +62,7 @@ def main() -> None:
 
   try:
     while True:
-      frame=camera.capture_frame()
+      frame=camera.capture()
       processor.get_frame(frame)
       encoded_img = processor.encode_frame()
       pub.publish(encoded_img)
