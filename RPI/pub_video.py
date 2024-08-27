@@ -12,14 +12,14 @@ class VideoProcessor:
     self.__check_video_path()
     self.__video_length=self.__get_video_length()
 
-  def encode_current_frame(self) -> None:
+  def encode_current_frame(self) -> str:
     _, img_array=self.__capture.read()
     _, img=cv2.imencode('.png', img_array)
     img_byte=img.tobytes()
     encoded_img=base64.b64encode(img_byte)
     return encoded_img
   
-  def skip_by_sec(self, skip_time_sec) -> None:
+  def skip_by_sec(self, skip_time_sec:float) -> None:
     skip_time_msec=skip_time_sec*1000
     current_position_msec=self.__capture.get(cv2.CAP_PROP_POS_MSEC)
     next_position=current_position_msec+skip_time_msec
