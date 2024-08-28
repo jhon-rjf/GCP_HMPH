@@ -8,7 +8,7 @@
 아래는 이 프로젝트에 대한 상세한 프레젠테이션입니다:
 
 ![GoogleSlide](https://github.com/user-attachments/assets/0c0773f5-829d-4bd6-a89f-bfd5ff039973)
-[프레젠테이션 보기](https://docs.google.com/presentation/d/13FEeBHMOEWEBfjOnqBWsbE8tzCHNL2oqJx4HA8yl5AY/edit?usp=sharing)
+[프레젠테이션 보기]
 
 ## 주요사용 GCP  기능
 - Google Dataflow
