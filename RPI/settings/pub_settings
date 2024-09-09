@@ -1,5 +1,5 @@
 {
-  "topic_id": "projects/andong-24-team-102/topics/test",
+  "topic_id": "",  # 경로 입력 필요
   "credential_path": "gcloud-team-project-credential-key.json",
   "video_path":"./video.mp4"
 }
