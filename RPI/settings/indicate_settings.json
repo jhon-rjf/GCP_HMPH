@@ -1,0 +1,7 @@
+{
+  "led_pins": [14, 15],
+  "buzzer_pins": [13],
+  "table_path": "",  # enter table path
+  "query": "", # enter Query
+  "credential_path": "gcloud-team-project-credential-key.json"
+}
