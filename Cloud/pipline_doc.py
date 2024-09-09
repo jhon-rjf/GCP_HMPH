@@ -31,11 +31,11 @@ class Saving_img_to_gcs(beam.DoFn):
     _,buffer_img=cv2.imencode('.png',np_arr_img)
     blob.upload_from_string(buffer_img.tobytes(),content_type='image/png')
 
-topics='projects/andong-24-team-102/topics/test'
+topics='' #입력필요
 bucket_name='mypipestorage'
 
 pipeline_options = PipelineOptions(
-  project='andong-24-team-102',     
+  project='',     #입력 필요
   runner='DataflowRunner',
   temp_location='gs://mypipestorage/temp',
   region='us-central1',
