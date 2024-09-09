@@ -27,11 +27,11 @@ class saving_img_to_gcs(beam.DoFn):
     _,buffer_img=cv2.imencode('.png',np_arr_img)
     blob.upload_from_string(buffer_img.tobytes(),content_type='image/png')
 
-topics='projects/andong-24-team-102/topics/test'           #토픽 경로 입력
+topics=''           #토픽 경로 입력
 bucket_name='mypipestorage'
 
 pipeline_options = PipelineOptions(
-  project='andong-24-team-102',     #프로젝트 id 입력
+  project='',     #프로젝트 id 입력
   runner='DataflowRunner',
   temp_location='gs://mypipestorage/temp',    
   staging_location='gs://mypipestorage/staging',    #지역 설정할것
