@@ -37,6 +37,13 @@
 app.py를 실행, 면적입력하면 web과 bigquery등의 시스템이 동작합니다.
 vm의 외부 ip주소를 활용하여 포트 8000번으로 웹사이트에 진입합니다.
 
+## Google Cloud 인공지능 전문인력 양성과정 AI 융합혁신 기술대회 최우수 AI융합상
+
+[교내소식](https://www.anu.ac.kr/main/board/view.do?menu_idx=72&manage_idx=1&search.category1=106&board_idx=222242)
+
+![대회 최우수상 수여 및 발표현장](https://github.com/user-attachments/assets/9e453b28-a5c6-46db-a53a-9d09c3ccb4be)
+
+
 ## 연락처
 질문이나 피드백을 환영합니다 
 제 이매일 입니다. ykjung0917@kakao.com 
