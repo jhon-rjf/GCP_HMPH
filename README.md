@@ -20,6 +20,9 @@
 - Google Compute engine
 - Google Looker Studio
 
+## Context Diagram
+![Context_Diagram](https://github.com/user-attachments/assets/62664bf3-ffc1-4f11-a46a-115bdaf9b841)
+
 ## 개발환경
 모든 서비스의 동작은 GCP에서 동작하는 시스템입니다.
 
